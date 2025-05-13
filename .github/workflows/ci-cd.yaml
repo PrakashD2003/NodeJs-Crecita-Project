@@ -96,6 +96,11 @@ jobs:
           echo "[app]" > hosts.ini
           echo "ec2-nodejs ansible_host=${PUBLIC_IP} ansible_user=ubuntu" >> hosts.ini
 
+      - name: Add EC2 host to SSH known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ needs.terraform.outputs.public_ip }} >> ~/.ssh/known_hosts
+
       - name: Show generated hosts.ini
         run: cat hosts.ini
 
