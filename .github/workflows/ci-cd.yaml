@@ -30,6 +30,12 @@ jobs:
           cd terraform-setup/stack
           terraform init
           terraform apply -auto-approve
+      
+      - name: Debug Terraform outputs
+        if: ${{ steps.tf_apply.outcome == 'success' }}
+        run: |
+          cd terraform-setup/stack
+          terraform output
 
       - id: export_ip
         name: Export public_ip
