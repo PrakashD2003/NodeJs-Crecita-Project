@@ -27,11 +27,16 @@ jobs:
           terraform init
           terraform apply -auto-approve
       # capture the public_ip output for the next job
-      - name: Export public_ip
-        if: always()
+      - name: Export public_ip (safe)
         run: |
           cd terraform-setup/stack
-          echo "public_ip=$(terraform output -raw public_ip)" >> $GITHUB_OUTPUT
+          if ip=$(terraform output -raw public_ip 2>/dev/null); then
+            echo "public_ip=$ip" >> $GITHUB_OUTPUT
+          else
+            echo "No public_ip to export; skipping" >&2
+          fi
+        if: always()
+
 
   ansible:
     needs: terraform
