@@ -5,7 +5,7 @@ override.tf.json
 *_override.tf
 *_override.tf.json
 tfvars.tf
-*.tfvars
+# *.tfvars
 terraform-setup/stack/outputs
 
 # Terraform local state & plugins
