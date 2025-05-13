@@ -82,4 +82,4 @@ jobs:
           echo "ec2-nodejs ansible_host=${{ needs.terraform.outputs.public_ip }} ansible_user=ubuntu" >> hosts.ini
 
       - name: Run Playbook
-        run: ansible-playbook -i hosts.ini ansible/playbook.yml --private-key ~/.ssh/id_rsa
+        run: ansible-playbook -i hosts.ini ansible/playbook.yaml --private-key ~/.ssh/id_rsa
