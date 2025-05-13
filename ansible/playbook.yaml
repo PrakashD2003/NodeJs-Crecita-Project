@@ -1,0 +1,62 @@
+---
+- hosts: app
+  become: yes
+  vars:
+    app_dest: /opt/crecita
+    app_entrypoint: index.js
+    app_name: crecita
+
+  tasks:
+    - name: Add NodeSource GPG key
+      apt_key:
+        url: https://deb.nodesource.com/gpgkey/nodesource.gpg.key
+        state: present
+
+    - name: Add NodeSource Node.js 18.x apt repo and update cache
+      apt_repository:
+        repo: "deb https://deb.nodesource.com/node_18.x {{ ansible_facts.distribution_release }} main"
+        state: present
+        update_cache: yes      # ← runs apt-get update for you
+
+    - name: Install Git
+      apt:
+        name: git
+        state: present
+
+    - name: Install Node.js (includes npm)
+      apt:
+        name: nodejs
+        state: latest
+        update_cache: yes
+
+    - name: Check installed Node version
+      command: node --version
+      register: node_version
+
+    - name: Show Node version
+      debug:
+        msg: "Node version on host is {{ node_version.stdout }}"
+
+    - name: Install PM2 globally
+      npm:
+        name: pm2
+        global: yes
+        state: present
+
+    - name: Clone Crecita repo
+      git:
+        repo: 'https://github.com/PrakashD2003/NodeJs-Crecita-Project.git'
+        dest: "{{ app_dest }}"
+        version: main
+        force: yes
+
+    - name: Install app dependencies
+      npm:
+        path: "{{ app_dest }}"
+        state: present
+
+    - name: Start app under PM2 (npm start)
+      command: pm2 start npm --name "{{ app_name }}" -- start
+      args:
+        chdir: "{{ app_dest }}"
+

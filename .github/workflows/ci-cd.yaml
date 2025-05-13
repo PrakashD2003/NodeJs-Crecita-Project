@@ -1,0 +1,72 @@
+name: Deploy Crecita
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      # 👇 Configure AWS credentials from Secrets
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ap-south-1
+
+      - uses: hashicorp/setup-terraform@v2
+
+      - id: tf_apply
+        name: Terraform Init & Apply
+        run: |
+          cd terraform-setup/stack
+          terraform init
+          terraform apply -auto-approve
+      # capture the public_ip output for the next job
+      - name: Export public_ip
+        if: always()
+        run: |
+          cd terraform-setup/stack
+          echo "public_ip=$(terraform output -raw public_ip)" >> $GITHUB_OUTPUT
+
+  ansible:
+    needs: terraform
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      # 👇 Re-use the AWS creds if your playbook talks to AWS
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ap-south-1
+
+      # 👇 Install Ansible
+      - name: Install Ansible
+        run: sudo apt-get update && sudo apt-get install -y ansible
+
+      # 👇 Write your private‐key PEM into ~/.ssh/id_rsa
+      - name: Install SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      # 👇 Build your hosts file
+      - name: Build inventory
+        run: |
+          echo "[app]" > hosts.ini
+          echo "ec2-nodejs ansible_host=${{ needs.terraform.outputs.public_ip }} ansible_user=ubuntu" \
+            >> hosts.ini
+
+      # 👇 Run your playbook using that key
+      - name: Run Playbook
+        run: |
+          ansible-playbook -i hosts.ini ansible/playbook.yml \
+            --private-key ~/.ssh/id_rsa
