@@ -77,9 +77,11 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
 
       - name: Build Ansible inventory
+        env:
+            PUBLIC_IP: ${{ needs.terraform.outputs.public_ip }}
         run: |
           echo "[app]" > hosts.ini
-          echo "ec2-nodejs ansible_host=${{ needs.terraform.outputs.public_ip }} ansible_user=ubuntu" >> hosts.ini
+          echo "ec2-nodejs ansible_host=${PUBLIC_IP} ansible_user=ubuntu" >> hosts.ini
 
       - name: Show generated hosts.ini
         run: cat hosts.ini
