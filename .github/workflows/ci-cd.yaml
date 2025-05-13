@@ -36,8 +36,20 @@ jobs:
         if: ${{ steps.tf_apply.outcome == 'success' }}
         run: |
           cd terraform-setup/stack
-          ip=$(terraform output -raw public_ip)
-          printf 'public_ip=%s\n' "$ip" > $GITHUB_OUTPUT
+
+          # grab only the first (and only) line of the output
+          ip=$(terraform output -raw public_ip 2>/dev/null | head -n1)
+
+          # overwrite GITHUB_OUTPUT with exactly one valid line (with newline!)
+          printf 'public_ip=%s\n' "$ip" > "$GITHUB_OUTPUT"
+
+      - name: Dump GITHUB_OUTPUT
+        if: ${{ always() }}
+        run: |
+          echo "--- GITHUB_OUTPUT contents ---"
+          cat "$GITHUB_OUTPUT"
+
+
 
   ansible:
     needs: terraform
