@@ -81,5 +81,8 @@ jobs:
           echo "[app]" > hosts.ini
           echo "ec2-nodejs ansible_host=${{ needs.terraform.outputs.public_ip }} ansible_user=ubuntu" >> hosts.ini
 
+      - name: Show generated hosts.ini
+        run: cat hosts.ini
+
       - name: Run Playbook
         run: ansible-playbook -i hosts.ini ansible/playbook.yaml --private-key ~/.ssh/id_rsa
