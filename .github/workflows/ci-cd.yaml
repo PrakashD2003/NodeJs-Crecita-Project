@@ -38,19 +38,20 @@ jobs:
           terraform output
 
       - id: export_ip
-        name: Export public_ip
-        if: ${{ steps.tf_apply.outcome == 'success' }}
+        name: Export public_ip (debug)
         run: |
+          echo ">> Export step is running"
+          echo "GITHUB_OUTPUT file path: $GITHUB_OUTPUT" >&2
           cd terraform-setup/stack
 
-          # grab only the first (and only) line of the output
+          # grab the IP
           ip=$(terraform output -raw public_ip 2>/dev/null | head -n1)
+          echo ">> Got raw ip: '$ip'" >&2
 
-          # overwrite GITHUB_OUTPUT with exactly one valid line (with newline!)
-          printf 'public_ip=%s\n' "$ip" > "$GITHUB_OUTPUT"
+          # write it out
+          echo "public_ip=$ip" >> "$GITHUB_OUTPUT"
 
-      - name: Dump GITHUB_OUTPUT
-        if: ${{ always() }}
+      - name: Dump GITHUB_OUTPUT contents
         run: |
           echo "--- GITHUB_OUTPUT contents ---"
           cat "$GITHUB_OUTPUT"
