@@ -11,12 +11,18 @@ jobs:
       public_ip: ${{ steps.export_ip.outputs.public_ip }}
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
-        with: { … }
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ap-south-1
 
-      - uses: hashicorp/setup-terraform@v2
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
 
       - id: tf_apply
         name: Terraform Init & Apply
@@ -37,10 +43,28 @@ jobs:
     needs: terraform
     if: ${{ needs.terraform.result == 'success' }}
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
-      # … configure AWS, install ansible, SSH key …
-      - name: Build inventory
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials (for AWS modules, if needed)
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ap-south-1
+
+      - name: Install Ansible
+        run: sudo apt-get update && sudo apt-get install -y ansible
+
+      - name: Install SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      - name: Build Ansible inventory
         run: |
           echo "[app]" > hosts.ini
           echo "ec2-nodejs ansible_host=${{ needs.terraform.outputs.public_ip }} ansible_user=ubuntu" >> hosts.ini
