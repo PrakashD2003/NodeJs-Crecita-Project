@@ -38,22 +38,20 @@ jobs:
           terraform output
 
       - id: export_ip
-        name: Export public_ip (debug)
+        name: Export public_ip
         run: |
-          echo ">>> export_ip step is running" >&2
-          echo "GITHUB_OUTPUT path: '$GITHUB_OUTPUT'" >&2
           cd terraform-setup/stack
-          echo "PWD=$(pwd)" >&2
-          echo "Files in here:" >&2
-          ls -1 >&2
-
-          # grab the IP
+          
+          # turn off GitHub Actions command-echoing
+          set +x
           ip=$(terraform output -raw public_ip 2>/dev/null | head -n1)
-          echo ">>> terraform raw public_ip: '$ip'" >&2
-
-          # write it out
+          set -x
+          
+          echo ">>> Captured IP: $ip" >&2
+          
+          # write cleanly
           printf 'public_ip=%s\n' "$ip" > "$GITHUB_OUTPUT"
-          echo ">>> wrote to GITHUB_OUTPUT" >&2
+
 
       - name: Dump GITHUB_OUTPUT contents
         run: |
