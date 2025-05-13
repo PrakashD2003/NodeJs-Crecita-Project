@@ -38,19 +38,23 @@ jobs:
           terraform output
 
       - id: export_ip
-        name: Export public_ip
+        name: Extract and export public_ip
         run: |
           cd terraform-setup/stack
-          
-          # turn off GitHub Actions command-echoing
-          set +x
-          ip=$(terraform output -raw public_ip 2>/dev/null | head -n1)
-          set -x
-          
-          echo ">>> Captured IP: $ip" >&2
-          
-          # write cleanly
+
+          # Dump the raw terraform output for debugging
+          terraform output public_ip > raw_output.txt
+
+          # Extract the first IPv4-looking string
+          ip=$(grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' raw_output.txt | head -n1)
+
+          echo ">> raw_output.txt:"
+          cat raw_output.txt >&2
+          echo ">> extracted ip: '$ip'" >&2
+
+          # Write the one valid line
           printf 'public_ip=%s\n' "$ip" > "$GITHUB_OUTPUT"
+
 
 
       - name: Dump GITHUB_OUTPUT contents
