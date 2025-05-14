@@ -19,7 +19,6 @@ egress_rules = [
   { from_port = 443, to_port = 443, protocol = "tcp", cidr_blocks = ["0.0.0.0/0"] },
 ]
 sg_description = "Nodejs-project security-group"
-sg_output_file = "./outputs/sg_info.json"
 sg_tags = {
   "name"        = "NodeJs-Project-Security-Group"
   "Environment" = "Dev"
@@ -27,6 +26,7 @@ sg_tags = {
   "Owner"       = "Prakash" # Replace with your name or team name
   "Role"        = "NodeJS-app-Deployment"
 }
+sg_output_file = "./outputs/sg_info.json"
 
 
 ### EC2 Variables ###
@@ -45,4 +45,64 @@ ec2_tags = {
 }
 ec2_output_file = "./outputs/ec2_info.json"
 
+### ECR Variables ###
+ecr_repository_name  = "nodejs-crecita-repo"
+image_tag_mutability = "MUTABLE"
+lifecycle_policy     = <<EOF
+{
+  "rules": [
+    {
+      "rulePriority": 1,
+      "description": "Expire untagged images older than 30 days",
+      "selection": {
+        "tagStatus": "untagged",
+        "countType": "sinceImagePushed",
+        "countUnit": "days",
+        "countNumber": 30
+      },
+      "action": {
+        "type": "expire"
+      }
+    }
+  ]
+}
+EOF 
+ecr_tags = {
+  "Name"        = "NodeJs-Crecita-Repo"
+  "Environment" = "Dev"
+  "Project"     = "NodeJs-App-Deployment"
+  "Owner"       = "Prakash" # Replace with your name or team name
+}
+output_file = "./outputs/ecr_info.json" # Path to write out resource metadata for CI/CD
 
+### ECS Variables ###
+cluster_name    = "crecita-cluster"
+service_name    = "crecita-service"
+task_family     = "crecita-task"
+container_name  = "crecita-app"
+container_image = "519880288079.dkr.ecr.ap-south-1.amazonaws.com/nodejs-crecita-repo:nodejs-crecita-app"
+container_definitions = "value"
+cpu           = 256
+memory        = 512
+port          = 3000
+desired_count = 1
+
+subnets = [
+  "subnet-0abc1234def567890",
+  "subnet-0def1234abc567890"
+]
+
+security_groups = [
+  "sg-0312f6775a8b810cf"
+]
+
+assign_public_ip = true
+ecs_output_filepath = "./outputs/ecs_info.json"
+
+
+### I_AM_ROLE Variables ###
+role_name = "ecsTaskExecutionRole"
+managed_policy_arns = [ "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"]
+iam_role_tags = {
+    Project = "Crecita"
+  }
