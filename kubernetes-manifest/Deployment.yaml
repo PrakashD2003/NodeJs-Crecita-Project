@@ -1,0 +1,23 @@
+apiVersion: apps/v1            # ✅ API group and version used for managing Deployments.
+kind: Deployment               # ✅ Specifies that this YAML defines a Deployment resource.
+
+metadata:
+  name: nodejs-project-deployment         # ✅ Name of the Deployment (used for identification).
+
+spec:                          # ✅ Main configuration for how the Deployment behaves.
+  replicas: 2
+  selector:                    # ✅ Tells the Deployment how to find the Pods it manages.
+    matchLabels:
+      app: nodejs-app          # ✅ This must match the labels defined in the Pod template below.
+
+  template:                    # ✅ Defines the Pod template — what each Pod should look like.
+    metadata:
+      labels:
+        app: nodejs-app        # ✅ Labels assigned to Pods. Must match the selector above.
+    
+    spec:
+      containers:              # ✅ List of containers in the Pod.
+      - name: nodejs-app       # ✅ Name of the container (can be anything meaningful).
+        image: prakash3112/nodejs-app:v2  # ✅ Docker image to use (from Docker Hub in this case).
+        ports:
+        - containerPort: 3000  # ✅ Exposes port 3000 inside the container for incoming traffic.

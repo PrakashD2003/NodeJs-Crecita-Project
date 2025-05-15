@@ -1,0 +1,12 @@
+apiVersion: v1                      # API version for Service resources
+kind: Service                       # We're defining a Service
+metadata:
+  name: nodejs-project-service      # Name of the Service (used to access it within the cluster)
+spec:
+  type: NodePort
+  selector:                         # Selects the target Pods using label matching
+    app: nodejs-app                 # Match Pods that have label app=nodejs-app
+  ports:
+  - port: 80                        # Port exposed by the Service (cluster-wide or externally)
+    targetPort: 3000               # Port on the container inside the matched Pods
+    nodePort: 30080                # (optional) external port on the Node
