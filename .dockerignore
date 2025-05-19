@@ -1,2 +1,7 @@
 terraform-setup
 ansible
+nodejs-app-chart-0.1.0.tgz
+nodejs-app-chart
+kubernetes-manifest
+.github
+helm-repo

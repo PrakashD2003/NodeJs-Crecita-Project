@@ -12,7 +12,7 @@ appLabel: nodejs-app
 image:
   repository: prakash3112/nodejs-app
   # Overrides the image tag whose default is the chart appVersion.
-  tag: v2
+  tag: v3
   # This sets the pull policy for images.
   pullPolicy: IfNotPresent
 

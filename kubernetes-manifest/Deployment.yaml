@@ -3,7 +3,7 @@ kind: Deployment               # ✅ Specifies that this YAML defines a Deployme
 
 metadata:
   name: nodejs-project-deployment         # ✅ Name of the Deployment (used for identification).
-
+  
 spec:                          # ✅ Main configuration for how the Deployment behaves.
   replicas: 2
   selector:                    # ✅ Tells the Deployment how to find the Pods it manages.
